@@ -1,9 +1,8 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { mockVideos, getVideos } from '../Assets/mockVideos';
 import { useNavigate, Link } from "react-router-dom";
 import { Row, Col, Form, Button } from "react-bootstrap";
 import VideoCard from "../Components/Videos/VideoCard";
-import { baseURL } from "../Config/config";
 
 function Videos() {
   const [videos, setVideos] = useState([]);
@@ -12,15 +11,8 @@ function Videos() {
   const navigate = useNavigate();
 
   const retrieveVideos = () => {
-    axios
-      .get(`${baseURL}/videos/all-videos`)
-      .then((res) => {
-        setVideos(res.data);
-        console.log(res.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    // Mock data retrieval instead of API call
+    setVideos(getVideos());
   };
 
   useEffect(retrieveVideos, []);
@@ -46,123 +38,76 @@ function Videos() {
   ));
 
   return (
-    <div className="container-fluid d-flex flex-column align-items-center px-0">
-      <div className="container-fluid text-white" style={{backgroundColor: 'rgba(9,9,121)'}}>
-        <div className="container my-5">
-          <div className="display-5 px-2 text-center">
-            Explore ISL Videos!
+    <div className="page-container d-flex flex-column align-items-center px-0">
+      <div className="section-header container-fluid text-center">
+        <div className="container">
+          <div className="display-4 fw-bold glow-text mb-3">
+            Explore ISL Videos
           </div>
-          <div className="lead text-center">
-            Welcome to the ISL video section of Sign Kit. Create your own public
-            or private videos, share with your friends and colleagues or browse
-            through the videos created by others and shared with the entire
-            community!
+          <div className="lead text-white-50" style={{ maxWidth: '800px', margin: '0 auto' }}>
+            Welcome to the ISL video section of Silent Talk. Create your own public
+            or private videos, share with friends, or browse content from the community!
           </div>
         </div>
       </div>
 
-      <hr />
-
-      <section id="create-video">
-        <div className="container">
-          <div className="row my-4">
-            <div
-              className="col-md-12 d-flex justify-content-center align-items-center"
-              style={{ flexDirection: "column" }}
-            >
-              <div className="h2 section-heading">Create a new video!</div>
-              <div className="col-lg-4 divider my-2" />
-              <div className="text-center normal-text">
+      <section id="create-video" className="container mb-5">
+        <div className="glass-card text-center py-5">
+              <div className="h2 glow-text mb-3">Create a new video!</div>
+              <div className="col-lg-1 mx-auto divider my-4" />
+              <div className="lead text-white-50 mb-4 px-5">
                 Create your own video within a few clicks! Provide your content
                 via text, speech or file and keep the videos private or share
-                them with the entire community! Each video generates a video ID
-                which can be used to access the video directly.
+                them with the entire community!
               </div>
-              <Link to='/sign-kit/create-video' className="btn btn-primary mt-4">
-                Create your own Video!
+              <Link to='/sign-kit/create-video' className="btn btn-info btn-lg px-5 rounded-pill fw-bold">
+                <i className="fa fa-plus-circle me-2"></i> Create Video
               </Link>
-            </div>
-          </div>
         </div>
       </section>
 
-      <div className="hor-line" />
-
-      <section id="Open-video">
-        <div className="container">
-          <div className="row mt-3">
-            <div
-              className="col-md-12 d-flex justify-content-center align-items-center"
-              style={{ flexDirection: "column" }}
-            >
-              <div className="h2 section-heading">Open a video</div>
-              <div className="col-lg-4 divider my-2" />
-              <div className="text-center normal-text">
-                Open a video directly by using the associated video ID!
+      <section id="Open-video" className="container">
+        <div className="row">
+          <div className="col-md-12 text-center mb-5">
+              <div className="h2 glow-text">Open a video</div>
+              <div className="col-lg-1 mx-auto divider my-3" />
+              <div className="text-white-50">
+                Enter a specific Video ID to watch directly
               </div>
-            </div>
           </div>
+        </div>
+        
+        <div className="row justify-content-center">
+            <div className="col-lg-6">
+                <div className="glass-card p-4">
+                     <Form noValidate validated={validated} onSubmit={handleSubmit} className="d-flex gap-2">
+                        <Form.Control
+                            type="text"
+                            placeholder="Enter Video ID (e.g., 6245...)"
+                            value={videoId}
+                            required
+                            onChange={(e) => setVideoId(e.target.value)}
+                            className="form-control-lg"
+                        />
+                        <Button type="submit" variant="info" className="px-4 fw-bold">
+                            Open
+                        </Button>
+                        <Form.Control.Feedback type="invalid">
+                            Please provide a valid video ID.
+                        </Form.Control.Feedback>
+                    </Form>
+                </div>
+            </div>
         </div>
       </section>
 
-      <Row className="container mb-3">
-        <Form
-          noValidate
-          validated={validated}
-          onSubmit={handleSubmit}
-          className="d-flex flex-column justify-content-center align-items-center p-0"
-        >
-          <Form.Group
-            controlId="videoId"
-            as={Col}
-            xs="12"
-            md="7"
-            className="my-3"
-          >
-            <Form.Label>Enter the Video ID</Form.Label>
-            <Form.Control
-              required
-              type="text"
-              placeholder="Enter the Video ID here..."
-              value={videoId}
-              name="title"
-              onChange={(e) => setVideoId(e.target.value)}
-            />
-            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-            <Form.Control.Feedback type="invalid">
-              Please enter a video Id.
-            </Form.Control.Feedback>
-          </Form.Group>
-
-          <Button type="submit" className="my-2">
-            Open Video
-          </Button>
-        </Form>
-      </Row>
-
-      <div className="hor-line" />
-
-      <section id="Open-video">
-        <div className="container">
-          <div className="row mt-3">
-            <div
-              className="col-md-12 d-flex justify-content-center align-items-center"
-              style={{ flexDirection: "column" }}
-            >
-              <div className="h2 section-heading">Your Video Feed</div>
-              <div className="col-lg-4 divider my-2" />
-              <div className="text-center normal-text">
-                Browse through the ISL videos created by others and shared with
-                the entire community!
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="row container d-flex flex-column justify-content-center align-items-center">
-        {videoList}
+      <div className="container mt-5">
+         <div className="h3 glow-text mb-4 text-center">Latest Community Videos</div>
+         <Row xs={1} md={2} lg={3} className="g-4">
+            {videoList}
+         </Row>
       </div>
+
     </div>
   );
 }

@@ -10,15 +10,19 @@ import CreateVideo from './Pages/CreateVideo';
 import Footer from './Components/Footer';
 import Videos from './Pages/Videos';
 import Feedback from './Pages/Feedback';
+import SignToText from './Pages/SignToText';
+import CustomCursor from './Components/CustomCursor';
 
 function App() {
   return(
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div>
+        <CustomCursor />
         <Navbar />
         <Routes>
           <Route exact path='/sign-kit/home' element={<Home />} />
           <Route exact path='/sign-kit/convert' element={<Convert />} />
+          <Route exact path='/sign-kit/sign-to-text' element={<SignToText />} />
           <Route exact path='/sign-kit/learn-sign' element={<LearnSign />} />
           <Route exact path='/sign-kit/all-videos' element={<Videos />} />
           <Route exact path='/sign-kit/video/:videoId' element={<Video />} />

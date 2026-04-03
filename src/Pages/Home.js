@@ -7,14 +7,15 @@ import Masthead from "../Components/Home/Masthead";
 
 function Home() {
   return (
-    <div>
+    <div style={{ backgroundColor: '#0f172a' }}>
 
       <Masthead />
 
-      <Intro />
+      {/* <Intro /> Intro is mostly duplicate text now */}
       
       <Services />
       
+      <div style={{ height: '100px' }}></div> {/* Spacer */}
     </div>
   );
 }

@@ -1,0 +1,43 @@
+.custom-cursor {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #00d2ff;
+    border-radius: 50%;
+    position: fixed;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 9999;
+    transition: width 0.3s, height 0.3s, background-color 0.3s, transform 0.1s;
+    transition-timing-function: ease-out;
+    mix-blend-mode: difference;
+}
+
+.custom-cursor.clicked {
+    transform: translate(-50%, -50%) scale(0.9);
+    background-color: #00d2ff;
+}
+
+.custom-cursor.hovered {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(0, 210, 255, 0.1);
+    border-color: transparent;
+}
+
+.custom-cursor.hidden {
+    opacity: 0;
+}
+
+body {
+    cursor: none; /* Hide default cursor */
+}
+
+/* Ensure interactive elements still show pointer if JS fails or for fallback, 
+   but ideally we override everything to 'none' if we want pure custom cursor.
+   However, for accessibility, it's sometimes safer to keep default cursor.
+   We will hide it as requested implicitly by "change the mouse icon".
+   But let's be safe: */
+   
+a, button, input, textarea, .btn {
+    cursor: none !important;
+}

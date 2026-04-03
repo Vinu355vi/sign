@@ -18,6 +18,7 @@ import { defaultPose } from '../Animations/defaultPose';
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Button, Modal } from "react-bootstrap";
+import { getVideoById } from '../Assets/mockVideos';
 
 import { baseURL } from '../Config/config'
 
@@ -36,9 +37,10 @@ function Video() {
   const componentRef = useRef({});
   const { current: ref } = componentRef;
 
-  let id = React.createRef();
+  const id = useRef(null);
 
   useEffect(() => {
+    let mounted = true;
 
     ref.flag = false;
     ref.pending = false;
@@ -62,8 +64,12 @@ function Video() {
 
     ref.renderer = new THREE.WebGLRenderer({ antialias: true });
     ref.renderer.setSize(window.innerWidth*0.57, window.innerHeight - 70);
-    document.getElementById("canvas").innerHTML = "";
-    document.getElementById("canvas").appendChild(ref.renderer.domElement);
+    
+    const canvas = document.getElementById("canvas");
+    if(canvas) {
+      canvas.innerHTML = "";
+      canvas.appendChild(ref.renderer.domElement);
+    }
 
     ref.camera.position.z = 1.6;
     ref.camera.position.y = 1.4;
@@ -72,6 +78,7 @@ function Video() {
     loader.load(
       bot,
       (gltf) => {
+        if (!mounted) return;
         gltf.scene.traverse((child) => {
           if ( child.type === 'SkinnedMesh' ) {
             child.frustumCulled = false;
@@ -83,8 +90,15 @@ function Video() {
       },
       (xhr) => {
         console.log(xhr);
+      },
+      (error) => {
+        console.error('Error loading video avatar:', error);
       }
     );
+
+    return () => {
+        mounted = false;
+    }
 
     id.current.value=params.videoId
 
@@ -145,12 +159,13 @@ function Video() {
       }
       else{
         for(const [index, ch] of word.split('').entries()){
-          if(index === word.length-1)
+          if(index === word.length-1) 
             ref.animations.push(['add-text', ch+' ']);
           else 
             ref.animations.push(['add-text', ch]);
-          alphabets[ch](ref);
-          
+          if(alphabets[ch]) {
+            alphabets[ch](ref);
+          }
         }
       }
     }
@@ -158,15 +173,17 @@ function Video() {
 
   const animateFromID = () => {
       const videoID = id.current.value;
-      axios.get(`${baseURL}/videos/${videoID}`).then((res) => {
-        console.log(res.data)
-        setTitle(res.data.title)
-        setDesc(res.data.desc)
-        sign(res.data.content);
-      }).catch(err => {
-        console.log(err)
+      const video = getVideoById(videoID);
+      
+      if(video){
+        console.log(video)
+        setTitle(video.title)
+        setDesc(video.desc)
+        sign(video.content);
+      } else {
+        console.log("Video not found")
         setInvalidId(true)
-      });
+      }
   }
 
   return (

@@ -1,1 +1,1 @@
-export const baseURL = 'https://sign-kit-api.herokuapp.com/sign-kit'
+export const baseURL = '/sign-kit'

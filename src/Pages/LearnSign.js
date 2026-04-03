@@ -25,6 +25,7 @@ function LearnSign() {
   const { current: ref } = componentRef;
 
   useEffect(() => {
+    let mounted = true;
 
     ref.flag = false;
     ref.pending = false;
@@ -48,8 +49,12 @@ function LearnSign() {
 
     ref.renderer = new THREE.WebGLRenderer({ antialias: true });
     ref.renderer.setSize(window.innerWidth * 0.57, (window.innerHeight - 70));
-    document.getElementById("canvas").innerHTML = "";
-    document.getElementById("canvas").appendChild(ref.renderer.domElement);
+    
+    const canvas = document.getElementById("canvas");
+    if(canvas) {
+      canvas.innerHTML = "";
+      canvas.appendChild(ref.renderer.domElement);
+    }
 
     ref.camera.position.z = 1.6;
     ref.camera.position.y = 1.4;
@@ -58,6 +63,7 @@ function LearnSign() {
     loader.load(
       bot,
       (gltf) => {
+        if (!mounted) return;
         gltf.scene.traverse((child) => {
           if ( child.type === 'SkinnedMesh' ) {
             child.frustumCulled = false;
@@ -69,8 +75,15 @@ function LearnSign() {
       },
       (xhr) => {
         console.log(xhr);
+      },
+      (error) => {
+        console.error('Error loading model in LearnSign:', error);
       }
     );
+
+    return () => {
+        mounted = false;
+    }
 
   }, [ref, bot]);
 
@@ -113,7 +126,7 @@ function LearnSign() {
   let alphaButtons = [];
   for (let i = 0; i < 26; i++) {
     alphaButtons.push(
-        <div className='col-md-3'>
+        <div className='col-md-3' key={i}>
             <button className='signs w-100' onClick={()=>{
               if(ref.animations.length === 0){
                 alphabets[String.fromCharCode(i + 65)](ref);
@@ -128,7 +141,7 @@ function LearnSign() {
   let wordButtons = [];
   for (let i = 0; i < words.wordList.length; i++) {
     wordButtons.push(
-        <div className='col-md-4'>
+        <div className='col-md-4' key={i}>
             <button className='signs w-100' onClick={()=>{
               if(ref.animations.length === 0){
                 words[words.wordList[i]](ref);

@@ -27,8 +27,8 @@ function Convert() {
   const componentRef = useRef({});
   const { current: ref } = componentRef;
 
-  let textFromAudio = React.createRef();
-  let textFromInput = React.createRef();
+  let textFromAudio = useRef(null);
+  let textFromInput = useRef(null);
 
   const {
     transcript,
@@ -37,6 +37,7 @@ function Convert() {
   } = useSpeechRecognition();
 
   useEffect(() => {
+    let mounted = true;
 
     ref.flag = false;
     ref.pending = false;
@@ -45,12 +46,17 @@ function Convert() {
     ref.characters = [];
 
     ref.scene = new THREE.Scene();
-    ref.scene.background = new THREE.Color(0xdddddd);
+    ref.scene.background = new THREE.Color(0x1e293b); // Dark background for canvas
 
     const spotLight = new THREE.SpotLight(0xffffff, 2);
     spotLight.position.set(0, 5, 5);
     ref.scene.add(spotLight);
-    ref.renderer = new THREE.WebGLRenderer({ antialias: true });
+    
+    // Add ambient light for better visibility
+    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    ref.scene.add(ambientLight);
+
+    ref.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
     ref.camera = new THREE.PerspectiveCamera(
         30,
@@ -60,8 +66,11 @@ function Convert() {
     )
     ref.renderer.setSize(window.innerWidth * 0.57, window.innerHeight - 70);
 
-    document.getElementById("canvas").innerHTML = "";
-    document.getElementById("canvas").appendChild(ref.renderer.domElement);
+    const canvas = document.getElementById("canvas");
+    if (canvas) {
+      canvas.innerHTML = "";
+      canvas.appendChild(ref.renderer.domElement);
+    }
 
     ref.camera.position.z = 1.6;
     ref.camera.position.y = 1.4;
@@ -70,6 +79,7 @@ function Convert() {
     loader.load(
       bot,
       (gltf) => {
+        if (!mounted) return;
         gltf.scene.traverse((child) => {
           if ( child.type === 'SkinnedMesh' ) {
             child.frustumCulled = false;
@@ -80,9 +90,16 @@ function Convert() {
         defaultPose(ref);
       },
       (xhr) => {
-        console.log(xhr);
+        // console.log(xhr);
+      },
+      (error) => {
+        console.error('Error loading model:', error);
       }
     );
+
+    return () => {
+        mounted = false;
+    }
 
   }, [ref, bot]);
 
@@ -92,10 +109,14 @@ function Convert() {
       return ;
     }
     requestAnimationFrame(ref.animate);
+    
+    // Safety check: ensure avatar is loaded
+    if (!ref.avatar) return;
+
     if(ref.animations[0].length){
         if(!ref.flag) {
           if(ref.animations[0][0]==='add-text'){
-            setText(text + ref.animations[0][1]);
+            setText((prev) => prev + ref.animations[0][1]);
             ref.animations.shift();
           }
           else{
@@ -128,14 +149,14 @@ function Convert() {
     ref.renderer.render(ref.scene, ref.camera);
   }
 
-  const sign = (inputRef) => {
+  const sign = (input) => {
     
-    var str = inputRef.current.value.toUpperCase();
+    var str = input.toUpperCase();
     var strWords = str.split(' ');
     setText('')
 
     for(let word of strWords){
-      if(words[word]){
+      if(words[word] && typeof words[word] === "function"){
         ref.animations.push(['add-text', word+' ']);
         words[word](ref);
         
@@ -146,10 +167,17 @@ function Convert() {
             ref.animations.push(['add-text', ch+' ']);
           else 
             ref.animations.push(['add-text', ch]);
-          alphabets[ch](ref);
+          if(alphabets[ch]){
+              alphabets[ch](ref);
+          }
           
         }
       }
+    }
+    
+    if(!ref.pending){
+      ref.pending = true;
+      ref.animate();
     }
   }
 
@@ -162,76 +190,130 @@ function Convert() {
   }
 
   return (
-    <div className='container-fluid'>
-      <div className='row'>
-        <div className='col-md-3'>
-          <label className='label-style'>
-            Processed Text
-          </label>
-          <textarea rows={3} value={text} className='w-100 input-style' readOnly />
-          <label className='label-style'>
-            Speech Recognition: {listening ? 'on' : 'off'}
-          </label>
-          <div className='space-between'>
-            <button className="btn btn-primary btn-style w-33" onClick={startListening}>
-              Mic On <i className="fa fa-microphone"/>
-            </button>
-            <button className="btn btn-primary btn-style w-33" onClick={stopListening}>
-              Mic Off <i className="fa fa-microphone-slash"/>
-            </button>
-            <button className="btn btn-primary btn-style w-33" onClick={resetTranscript}>
-              Clear
-            </button>
-          </div>
-          <textarea rows={3} ref={textFromAudio} value={transcript} placeholder='Speech input ...' className='w-100 input-style' />
-          <button onClick={() => {sign(textFromAudio)}} className='btn btn-primary w-100 btn-style btn-start'>
-            Start Animations
-          </button>
-          <label className='label-style'>
-            Text Input
-          </label>
-          <textarea rows={3} ref={textFromInput} placeholder='Text input ...' className='w-100 input-style' />
-          <button onClick={() => {sign(textFromInput)}} className='btn btn-primary w-100 btn-style btn-start'>
-            Start Animations
-          </button>
-        </div>
-        <div className='col-md-7'>
-          <div id='canvas'/>
-        </div>
-        <div className='col-md-2'>
-          <p className='bot-label'>
-            Select Avatar
-          </p>
-          <img src={xbotPic} className='bot-image col-md-11' onClick={()=>{setBot(xbot)}} alt='Avatar 1: XBOT'/>
-          <img src={ybotPic} className='bot-image col-md-11' onClick={()=>{setBot(ybot)}} alt='Avatar 2: YBOT'/>
-          <p className='label-style'>
-            Animation Speed: {Math.round(speed*100)/100}
-          </p>
-          <Slider
-            axis="x"
-            xmin={0.05}
-            xmax={0.50}
-            xstep={0.01}
-            x={speed}
-            onChange={({ x }) => setSpeed(x)}
-            className='w-100'
-          />
-          <p className='label-style'>
-            Pause time: {pause} ms
-          </p>
-          <Slider
-            axis="x"
-            xmin={0}
-            xmax={2000}
-            xstep={100}
-            x={pause}
-            onChange={({ x }) => setPause(x)}
-            className='w-100'
-          />
+    <div className="page-container">
+      <div className="space-between">
+        <div style={{width:'58%', height:'calc(100vh - 70px)', borderRight:'1px solid rgba(255,255,255,0.1)'}} id="canvas"></div>
+        <div style={{width:'42%', padding: '30px'}} className="d-flex flex-column justify-content-center">
+            
+            <div className="glass-card">
+                <div className="heading h2 glow-text mb-4">
+                    Text to Sign
+                </div>
+
+                <div className="space-between align-items-center mb-4">
+                    <label className="text-white">Live Caption:</label>
+                    <input type='text' className='form-control w-75' disabled value={text} placeholder="Captions will appear here..."/>
+                </div>
+                
+                <hr className="my-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} />
+
+                <div className="mb-3">
+                    <label className="text-white mb-2">Input Text:</label>
+                    <textarea 
+                        className="form-control" 
+                        rows="3" 
+                        placeholder="Enter text to convert to sign language..."
+                        onChange={(e) => { textFromInput.current.value = e.target.value; }}
+                        ref={textFromInput}
+                    ></textarea>
+                </div>
+
+                <div className="d-flex gap-3 mb-4">
+                    <button className="btn btn-info flex-grow-1" onClick={() => {
+                         ref.flag = false;
+                         ref.pending = false;
+                         ref.animations = [];
+                         ref.characters = [];
+                         setText("");
+                         if (textFromInput.current) {
+                             sign(textFromInput.current.value);
+                         }
+                    }}>
+                        <i className="fa fa-play me-2"></i> Convert Text
+                    </button>
+                    <button className="btn btn-outline-light flex-grow-1" onClick={() => { 
+                        setText(""); 
+                        if(textFromInput.current) textFromInput.current.value = ""; 
+                        ref.flag = false;
+                        ref.pending = false;
+                        ref.animations = [];
+                        ref.characters = [];
+                    }}>
+                        <i className="fa fa-trash me-2"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <div className="glass-card">
+                <div className="d-flex align-items-center mb-3">
+                    <button 
+                        className={`btn ${listening ? 'btn-danger' : 'btn-success'} me-3 rounded-circle d-flex align-items-center justify-content-center`}
+                        style={{ width: '50px', height: '50px' }}
+                        onClick={() => { if (!listening) startListening(); else stopListening(); }}
+                    >
+                        <i className={`fa ${listening ? 'fa-microphone-slash' : 'fa-microphone'}`} style={{ marginLeft: 0 }}></i>
+                    </button>
+                    <div className="flex-grow-1">
+                        <label className="text-white mb-1 d-block">Speech Input:</label>
+                        <input type='text' className='form-control' value={transcript} disabled placeholder="Speech text..."/>
+                    </div>
+                </div>
+                <button className="btn btn-info w-100" onClick={() => {
+                     if(transcript === "") {
+                         alert("Please speak something!");
+                         return;
+                     }
+                     if(textFromInput.current) textFromInput.current.value="";
+                     
+                     // Reset state like input button
+                     ref.flag = false;
+                     ref.pending = false;
+                     ref.animations = [];
+                     ref.characters = [];
+                     setText("");
+                     sign(transcript);
+                }}>
+                    <i className="fa fa-refresh me-2"></i> Convert Speech
+                </button>
+            </div>
+
+            <div className="glass-card p-3">
+                 <div className="space-between align-items-center">
+                    <div>
+                        <span className="text-white me-3">Speed: {speed}</span>
+                        <div style={{ display: 'inline-block', touchAction: 'none' }}>
+                        <Slider
+                            axis="x"
+                            x={speed}
+                            xmin={0.1}
+                            xmax={0.3}
+                            xstep={0.05}
+                            onChange={({ x }) => setSpeed(parseFloat(x.toFixed(2)))}
+                            styles={{
+                                track: { backgroundColor: 'rgba(255,255,255,0.1)' },
+                                active: { backgroundColor: '#00d2ff' },
+                                thumb: { width: 15, height: 15, backgroundColor: 'white' }
+                            }}
+                        />
+                        </div>
+                    </div>
+                    
+                    <div className="d-flex align-items-center gap-2">
+                        <span className="text-white">Avatar:</span>
+                        <div className={`p-1 ${bot === ybot ? 'border border-info rounded' : ''}`} style={{cursor:'pointer'}} onClick={() => { setBot(ybot); }}>
+                            <img src={ybotPic} alt="YBot" width="40" style={{borderRadius:'5px'}}/>
+                        </div>
+                        <div className={`p-1 ${bot === xbot ? 'border border-info rounded' : ''}`} style={{cursor:'pointer'}} onClick={() => { setBot(xbot); }}>
+                             <img src={xbotPic} alt="XBot" width="40" style={{borderRadius:'5px'}}/>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default Convert;

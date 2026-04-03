@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom'
 import { Row, Form, Col, Button } from "react-bootstrap";
 import { baseURL } from "../Config/config";
+import { addVideo } from "../Assets/mockVideos";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
@@ -68,219 +69,187 @@ function CreateVideo() {
       content: content,
     };
 
-    axios
-      .post(`${baseURL}/videos/create-video`, newVideo)
-      .then((res) => {
-        setVideoId(res.data.videoId)
-        setShowModal(true)
-        console.log(res.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    // Mock API call
+    console.log("Mocking API call to create video:", newVideo);
+    const addedVideo = addVideo(newVideo);
+    setVideoId(addedVideo._id);
+    setShowModal(true);
   };
 
   return (
-    <div className="container d-flex flex-column align-items-center">
-      <div className="display-5 mt-5 px-2 text-center">Create a New Video!</div>
-      <div className="lead mb-5 px-2 text-center">
-        Fill this form and provide your content to create a video using ISL in a
-        few clicks!
+    <div className="page-container d-flex flex-column align-items-center">
+      <div className="section-header w-100 text-center">
+         <div className="display-4 fw-bold glow-text mb-2">Create a New Video</div>
+         <div className="lead text-white-50">
+            Fill this form and provide your content to create a video using ISL in a few clicks!
+         </div>
       </div>
 
-      <Row className="container">
-        <Form
-          noValidate
-          validated={validated}
-          onSubmit={handleSubmit}
-          className="d-flex flex-column justify-content-center align-items-center p-0"
-        >
-          <Form.Group controlId="title" as={Col} xs="12" md="7" className="my-3">
-            <Form.Label>Title of Video</Form.Label>
-            <Form.Control
-              required
-              type="text"
-              placeholder="Title of Video"
-              value={video.title}
-              name="title"
-              onChange={handleInputChanges}
-            />
-            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-            <Form.Control.Feedback type="invalid">
-              Please enter a title.
-            </Form.Control.Feedback>
-          </Form.Group>
-
-          <Form.Group controlId="desc" as={Col} xs="12" md="7" className="mx-0 px-0 my-3">
-            <Form.Label>Description of Video</Form.Label>
-            <Form.Control
-              required
-              type="text"
-              placeholder="Description of Video"
-              name="desc"
-              onChange={handleInputChanges}
-              as="textarea"
-              rows={4}
-            />
-            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-            <Form.Control.Feedback type="invalid">
-              Please enter a description.
-            </Form.Control.Feedback>
-          </Form.Group>
-
-          <Form.Group controlId="createdBy" as={Col} xs="12" md="7" className="my-3">
-            <Form.Label>Name of Creator</Form.Label>
-            <Form.Control
-              required
-              type="text"
-              placeholder="Name of Creator"
-              name="createdBy"
-              onChange={handleInputChanges}
-            />
-            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-            <Form.Control.Feedback type="invalid">
-              Please enter your name as the creator.
-            </Form.Control.Feedback>
-          </Form.Group>
-
-          <Form.Group controlId="type" as={Col} xs="12" md="7" className="my-3">
-            <Form.Label>Select the type of video</Form.Label>
-            <Form.Select
-              required
-              placeholder="Select a type"
-              value={video.type}
-              name="type"
-              onChange={handleInputChanges}
-            >
-              <option value="PUBLIC">Public - Your video will be visible to the entire communtiy</option>
-              <option value="PRIVATE">Private - Your video can be accessed by people with whom you share the video ID</option>
-            </Form.Select>
-            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-            <Form.Control.Feedback type="invalid">
-              Please select a video type.
-            </Form.Control.Feedback>
-          </Form.Group>
-
-          <Form.Group controlId="mode" as={Col} xs="12" md="7" className="my-3">
-            <Form.Label>Select a mode to provide your content</Form.Label>
-            <Form.Select
-              required
-              placeholder="Select a mode"
-              value={mode}
-              onChange={(e) => setMode(e.target.value)}
-            >
-              <option value="text">Type the text</option>
-              <option value="speech">Speak through mic</option>
-              <option value="file">Upload a text file</option>
-            </Form.Select>
-            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-            <Form.Control.Feedback type="invalid">
-              Please select a mode.
-            </Form.Control.Feedback>
-          </Form.Group>
-
-          {mode === "text" && (
-            <Form.Group controlId="text" as={Col} xs="12" md="7" className="my-3">
-              <Form.Label>Enter your content here</Form.Label>
-              <Form.Control
-                required
-                type="text"
-                placeholder="Type your content here..."
-                name="content"
-                onChange={(e) => setText(e.target.value)}
-                as="textarea"
-                rows={8}
-              />
-              <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-              <Form.Control.Feedback type="invalid">
-                Please type your content.
-              </Form.Control.Feedback>
-            </Form.Group>
-          )}
-
-          {mode === "file" && (
-            <Form.Group controlId="formFile" as={Col} xs="12" md="7" className="my-3">
-              <Form.Label>Upload your text (.txt) file here</Form.Label>
-              <Form.Control
-                type="file"
-                accept=".txt"
-                onChange={(e) => setFile(e.target.files[0])}
-                required
-              />
-              <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-              <Form.Control.Feedback type="invalid">
-                Please upload a text file here.
-              </Form.Control.Feedback>
-            </Form.Group>
-          )}
-
-          {mode === "speech" && (
-            <div className="col-md-7 d-flex flex-column justify-content-center my-3">
-              <div className="row d-flex justify-content-center">
-                <label className="mb-2">
-                  Speech Recognition: {listening ? "on" : "off"}
-                </label>
-                <button
-                  type="button"
-                  className="btn btn-primary col-md-3 mx-3"
-                  onClick={startListening}
+      <Row className="container d-flex justify-content-center">
+        <Col md={8} lg={6}>
+            <div className="glass-card">
+                <Form
+                noValidate
+                validated={validated}
+                onSubmit={handleSubmit}
+                className="d-flex flex-column"
                 >
-                  Mic On <i className="fa fa-microphone" />
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary col-md-3 mx-3"
-                  onClick={stopListening}
-                >
-                  Mic Off <i className="fa fa-microphone-slash" />
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary col-md-3 mx-3"
-                  onClick={resetTranscript}
-                >
-                  Clear
-                </button>
-              </div>
+                <Form.Group controlId="title" className="mb-3">
+                    <Form.Label className="text-white">Title of Video</Form.Label>
+                    <Form.Control
+                    required
+                    type="text"
+                    placeholder="Enter video title"
+                    name="title"
+                    value={video.title}
+                    onChange={handleInputChanges}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                    Please provide a valid video title.
+                    </Form.Control.Feedback>
+                </Form.Group>
+
+                <Form.Group controlId="desc" className="mb-3">
+                    <Form.Label className="text-white">Description</Form.Label>
+                    <Form.Control
+                    required
+                    as="textarea"
+                    rows={3}
+                    placeholder="Brief description of the video"
+                    name="desc"
+                    value={video.desc}
+                    onChange={handleInputChanges}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                    Please provide a valid description.
+                    </Form.Control.Feedback>
+                </Form.Group>
+
+                <Form.Group controlId="createdBy" className="mb-4">
+                    <Form.Label className="text-white">Creator Name</Form.Label>
+                    <Form.Control
+                    required
+                    type="text"
+                    placeholder="Enter your name"
+                    name="createdBy"
+                    value={video.createdBy}
+                    onChange={handleInputChanges}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                    Please provide the creator name.
+                    </Form.Control.Feedback>
+                </Form.Group>
+
+                <Form.Group className="mb-4">
+                    <Form.Label className="text-white d-block mb-3">Video Type</Form.Label>
+                    <div className="d-flex gap-3">
+                        <Form.Check
+                            type="radio"
+                            label="Public"
+                            name="type"
+                            id="public"
+                            value="PUBLIC"
+                            className="text-white"
+                            checked={video.type === "PUBLIC"}
+                            onChange={handleInputChanges}
+                        />
+                        <Form.Check
+                            type="radio"
+                            label="Private"
+                            name="type"
+                            id="private"
+                            value="PRIVATE"
+                            className="text-white"
+                            checked={video.type === "PRIVATE"}
+                            onChange={handleInputChanges}
+                        />
+                    </div>
+                </Form.Group>
+                
+                <div className="bg-dark p-3 rounded mb-4 border border-secondary">
+                    <Form.Label className="text-white mb-3">Content Source:</Form.Label>
+                    <div className="d-flex gap-2 mb-3">
+                        <Button
+                            variant={mode === "text" ? "info" : "outline-secondary"}
+                            onClick={() => setMode("text")}
+                            className="flex-grow-1"
+                        >Text</Button>
+                        <Button
+                            variant={mode === "file" ? "info" : "outline-secondary"}
+                            onClick={() => setMode("file")}
+                            className="flex-grow-1"
+                        >File</Button>
+                         <Button
+                            variant={mode === "speech" ? "info" : "outline-secondary"}
+                            onClick={() => setMode("speech")}
+                            className="flex-grow-1"
+                        >Speech</Button>
+                    </div>
+
+                    {mode === "text" && (
+                        <Form.Group controlId="text">
+                        <Form.Control
+                            required
+                            as="textarea"
+                            rows={5}
+                            placeholder="Enter text content here..."
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                        />
+                         <Form.Control.Feedback type="invalid">
+                            Please provide text content.
+                        </Form.Control.Feedback>
+                        </Form.Group>
+                    )}
+
+                    {mode === "file" && (
+                         <Form.Group controlId="file">
+                             <Form.Control 
+                                type="file" 
+                                required
+                                onChange={(e)=>setFile(e.target.files[0])}
+                             />
+                             <Form.Control.Feedback type="invalid">
+                                Please select a file.
+                            </Form.Control.Feedback>
+                         </Form.Group>
+                    )}
+
+                    {mode === "speech" && (
+                         <div className="d-flex flex-column gap-2">
+                             <div className="d-flex gap-2">
+                                <Button variant={listening ? "danger" : "success"} onClick={listening ? stopListening : startListening}>
+                                    <i className={`fa ${listening ? 'fa-microphone-slash' : 'fa-microphone'} me-2`}></i>
+                                    {listening ? "Stop Recording" : "Start Recording"}
+                                </Button>
+                             </div>
+                             <Form.Control
+                                as="textarea"
+                                rows={4}
+                                disabled
+                                value={transcript}
+                            />
+                             {transcript.length === 0 && <span className="text-muted small">Speak something...</span>}
+                         </div>
+                    )}
+                </div>
+
+                <div className="d-flex justify-content-center">
+                    <Button type="submit" variant="info" size="lg" className="w-100 fw-bold">
+                        Create Video
+                    </Button>
+                </div>
+
+                </Form>
             </div>
-          )}
-
-          {mode === "speech" && (
-            <Form.Group
-              controlId="speech-text"
-              as={Col}
-              xs="12"
-              md="7"
-              className="my-3"
-            >
-              <Form.Label>
-                Use the controls and speak through your mic
-              </Form.Label>
-              <Form.Control
-                required
-                readOnly
-                type="text"
-                placeholder="Your content will be displayed here..."
-                name="content"
-                value={transcript}
-                as="textarea"
-                rows={8}
-              />
-              <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-              <Form.Control.Feedback type="invalid">
-                Please speak through your mic.
-              </Form.Control.Feedback>
-            </Form.Group>
-          )}
-
-          <Button type="submit" className='mt-3'>Submit form</Button>
-        </Form>
+        </Col>
       </Row>
-
-      <ConfirmModal show={showModal} onHide={(e) => {
-        setShowModal(false)
-        navigate('/sign-kit/all-videos', { replace: true })
-      }} videoId={videoId} />
+      
+      <ConfirmModal 
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        videoId={videoId}
+      />
     </div>
   );
 }

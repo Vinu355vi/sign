@@ -4,10 +4,16 @@ import { Form, Button, Modal } from "react-bootstrap";
 function ConfirmModal({ show, onHide, videoId }) {
     const handleClick = (videoId) => {
         navigator.clipboard.writeText(videoId)
-        document.getElementById('copy-msg').style.visibility='visible'
-        setTimeout(() => {
-            document.getElementById('copy-msg').style.visibility='hidden'
-        }, 2000)
+        const copyMsg = document.getElementById('copy-msg');
+        if(copyMsg) {
+            copyMsg.style.visibility='visible';
+            setTimeout(() => {
+                const msg = document.getElementById('copy-msg');
+                if(msg) {
+                    msg.style.visibility='hidden';
+                }
+            }, 2000);
+        }
     }
 
   return (
