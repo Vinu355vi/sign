@@ -1,10 +1,9 @@
 # Silent Talk 🗣️
 
-![Silent Talk - Landing Page](./assets/landing.png)
+![Silent Talk - Landing Page](./assets/screens/landing.png)
 <p align="center">
-  <img src=".\public\assets\land.png" width="500"/>
+  <img src=".\assets\land.png" width="500"/>
 </p>
-
 ## 📖 About the Project
 
 **Silent Talk** is a comprehensive web application designed to bridge the communication gap for the deaf and hard-of-hearing community. By leveraging modern web technologies and Artificial Intelligence, specifically Computer Vision and Machine Learning, the project provides a suite of tools for translating between spoken/written language and Indian Sign Language (ISL). The application features real-time Sign-to-Text conversion using webcam input and Text-to-Sign conversion using a 3D avatar, along with learning modules and video creation tools to ensure total workplace and personal communication compliance.
@@ -64,7 +63,9 @@ Below are some visual representations of the application:
 Translation Interface
 Silent Talk - Service Page
 
-<p align="center"> <img src=".\assets\future.png" width="500"/> </p>
+<p align="center">
+ <img src=".\assets\future.png" width="500"/>
+  </p>
 
 📜 Copyright
 
